@@ -54,25 +54,40 @@ function registerSocketHandlers(io) {
     }
     onlineUsers.get(userId).add(socket.id);
 
-    // ── joinRoom ────────────────────────────────────────────────────────
-    socket.on('joinRoom', ({ relationshipId }) => {
-      if (!relationshipId) return;
-
-      // Verify user belongs to this relationship
-      if (socket.relationshipId !== relationshipId) {
-        socket.emit('error', { message: 'Access denied to this room.' });
-        return;
-      }
-
-      const roomName = `relationship:${relationshipId}`;
+    // Auto-join relationship room and sync presence globally
+    if (socket.relationshipId) {
+      const roomName = `relationship:${socket.relationshipId}`;
       socket.join(roomName);
-      console.log(`[Socket] ${socket.id} joined room: ${roomName}`);
-
+      
       // Notify partner that this user is online
       socket.to(roomName).emit('partnerOnline', {
         userId,
         timestamp: new Date().toISOString(),
       });
+      
+      // Sync initial state for the user who just joined
+      io.in(roomName).fetchSockets().then((socketsInRoom) => {
+        for (const s of socketsInRoom) {
+          if (s.userId !== userId) {
+            socket.emit('partnerOnline', {
+              userId: s.userId,
+              timestamp: new Date().toISOString(),
+            });
+            break;
+          }
+        }
+      }).catch(err => console.error('[Socket] fetchSockets error:', err.message));
+    }
+
+    // ── joinRoom (Legacy/Redundant but kept for safety) ───────────────
+    socket.on('joinRoom', async ({ relationshipId }) => {
+      if (!relationshipId) return;
+      if (socket.relationshipId !== relationshipId) {
+        socket.emit('error', { message: 'Access denied to this room.' });
+        return;
+      }
+      const roomName = `relationship:${relationshipId}`;
+      socket.join(roomName);
     });
 
     // ── sendMessage ─────────────────────────────────────────────────────

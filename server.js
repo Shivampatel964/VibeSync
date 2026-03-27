@@ -39,19 +39,25 @@ async function bootstrap() {
     pingInterval: 10000,
   });
 
+  app.set('io', io);
   registerSocketHandlers(io);
 
   // ── Start listening ─────────────────────────────────────────────────────
-  httpServer.listen(config.port, () => {
-    console.log('');
-    console.log('  🌿 VibeSync Backend');
-    console.log(`  ─────────────────────────────────`);
-    console.log(`  ENV  : ${config.env}`);
-    console.log(`  PORT : ${config.port}`);
-    console.log(`  API  : http://localhost:${config.port}/api`);
-    console.log(`  WS   : ws://localhost:${config.port}`);
-    console.log('');
-  });
+  // httpServer.listen(config.port, () => {
+  //   console.log('');
+  //   console.log('  🌿 VibeSync Backend');
+  //   console.log(`  ─────────────────────────────────`);
+  //   console.log(`  ENV  : ${config.env}`);
+  //   console.log(`  PORT : ${config.port}`);
+  //   console.log(`  API  : http://localhost:${config.port}/api`);
+  //   console.log(`  WS   : ws://localhost:${config.port}`);
+  //   console.log('');
+  // });
+
+  const BASE_URL = process.env.BASE_URL || `http://localhost:${config.port}`;
+
+console.log(`API  : ${BASE_URL}/api`);
+console.log(`WS   : ${BASE_URL.replace('https', 'ws')}`);
 
   // ── Graceful shutdown ───────────────────────────────────────────────────
   const shutdown = (signal) => {

@@ -65,11 +65,28 @@ class FernController {
   async sendAppreciation(req, res, next) {
     try {
       const { message } = req.body;
-      const status = await fernService.sendAppreciation(req.userId, message);
+      const io = req.app.get('io');
+      const status = await fernService.sendAppreciation(req.userId, message, io);
       return sendSuccess(res, {
         statusCode: 200,
         message: 'Appreciation sent.',
         data: status,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/fern/appreciation
+   */
+  async getAppreciations(req, res, next) {
+    try {
+      const appreciation = await fernService.getAppreciations(req.userId);
+      return sendSuccess(res, {
+        statusCode: 200,
+        message: 'Active appreciation fetched.',
+        data: appreciation,
       });
     } catch (err) {
       next(err);

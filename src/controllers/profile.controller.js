@@ -27,8 +27,8 @@ class ProfileController {
    */
   async updateProfile(req, res, next) {
     try {
-      const { name, fernName } = req.body;
-      const avatarUrl = req.file ? buildFileUrl(req.file.filename, req) : undefined;
+      const { name, fernName, avatarUrl: bodyAvatarUrl } = req.body;
+      const avatarUrl = req.file ? buildFileUrl(req.file.filename, req) : (bodyAvatarUrl || undefined);
 
       const user = await profileService.updateProfile(req.userId, {
         name,

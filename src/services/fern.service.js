@@ -3,6 +3,7 @@
 const Relationship = require('../models/Relationship');
 const DailyActivity = require('../models/DailyActivity');
 const User = require('../models/User');
+const Appreciation = require('../models/Appreciation');
 const { AppError } = require('../utils/response.utils');
 const { getTodayIST, calculateStreakUpdate } = require('../utils/date.utils');
 const {
@@ -126,10 +127,20 @@ class FernService {
    * Send an appreciation message today.
    * @param {string} userId
    * @param {string} message
+   * @param {object} io
    */
-  async sendAppreciation(userId, message) {
-    const { relationship } = await this._getRelationshipForUser(userId);
+  async sendAppreciation(userId, message, io) {
+    const { relationship, isUser1 } = await this._getRelationshipForUser(userId);
     const today = getTodayIST();
+    
+    const receiverId = isUser1 ? relationship.user2 : relationship.user1;
+
+    // Create standalone appreciation
+    const appreciation = await Appreciation.create({
+      senderId: userId,
+      receiverId,
+      message,
+    });
 
     await DailyActivity.findOneAndUpdate(
       { relationshipId: relationship._id, date: today },
@@ -143,7 +154,19 @@ class FernService {
     );
 
     await this._recalculateHealth(relationship._id);
+
+    if (io) {
+      io.to(`relationship:${relationship._id}`).emit('appreciation_received', appreciation);
+    }
+
     return this.getFernStatus(userId);
+  }
+
+  /**
+   * Fetch active appreciation for user
+   */
+  async getAppreciations(userId) {
+    return Appreciation.findOne({ receiverId: userId }).sort({ createdAt: -1 });
   }
 
   /**

@@ -29,6 +29,7 @@ const promptAnswerSchema = z.object({
 
 // ── Routes ────────────────────────────────────────────────────────────────
 router.get('/status', fernController.getFernStatus);
+router.get('/appreciation', fernController.getAppreciations);
 router.post('/update-activity', fernController.updateActivity);
 router.post('/mood', validate(moodSchema), fernController.submitMood);
 router.post('/appreciation', validate(appreciationSchema), fernController.sendAppreciation);

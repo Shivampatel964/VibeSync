@@ -80,7 +80,7 @@ userSchema.methods.comparePassword = async function (plaintext) {
 
 // ── Static methods ────────────────────────────────────────────────────────────
 userSchema.statics.hashPassword = async function (plaintext) {
-  const SALT_ROUNDS = 12;
+  const SALT_ROUNDS = 10;
   return bcrypt.hash(plaintext, SALT_ROUNDS);
 };
 
