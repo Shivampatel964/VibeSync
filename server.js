@@ -43,21 +43,25 @@ async function bootstrap() {
   registerSocketHandlers(io);
 
   // ── Start listening ─────────────────────────────────────────────────────
-  // httpServer.listen(config.port, () => {
-  //   console.log('');
-  //   console.log('  🌿 VibeSync Backend');
-  //   console.log(`  ─────────────────────────────────`);
-  //   console.log(`  ENV  : ${config.env}`);
-  //   console.log(`  PORT : ${config.port}`);
-  //   console.log(`  API  : http://localhost:${config.port}/api`);
-  //   console.log(`  WS   : ws://localhost:${config.port}`);
-  //   console.log('');
-  // });
+  
+const PORT = process.env.PORT || 5000;
 
-  const BASE_URL = process.env.BASE_URL || `http://localhost:${config.port}`;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
-console.log(`API  : ${BASE_URL}/api`);
-console.log(`WS   : ${BASE_URL.replace('https', 'ws')}`);
+const WS_URL = BASE_URL.startsWith('https')
+  ? BASE_URL.replace('https', 'wss')
+  : BASE_URL.replace('http', 'ws');
+
+httpServer.listen(PORT, () => {
+  console.log('');
+  console.log('  🌿 VibeSync Backend');
+  console.log(`  ─────────────────────────────────`);
+  console.log(`  ENV  : ${config.env}`);
+  console.log(`  PORT : ${PORT}`);
+  console.log(`  API  : ${BASE_URL}/api`);
+  console.log(`  WS   : ${WS_URL}`);
+  console.log('');
+});
 
   // ── Graceful shutdown ───────────────────────────────────────────────────
   const shutdown = (signal) => {
